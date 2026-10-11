@@ -73,10 +73,13 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
     var library =
         (node.root as CompilationUnit).declaredFragment?.element.library;
     if (library == null) return;
+    var fields = element.fields
+        .where((e) => e.isStatic && e.isConst && e.isAccessibleIn(library))
+        .toList();
+    if (fields.isEmpty) return;
     var value = node.computeConstantValue()?.value;
-    for (var field in element.fields.where((e) => e.isStatic && e.isConst)) {
-      if (field.isAccessibleIn(library) &&
-          field.computeConstantValue() == value) {
+    for (var field in fields) {
+      if (field.computeConstantValue() == value) {
         rule.reportAtNode(node, arguments: ['${element.name}.${field.name}']);
         return;
       }

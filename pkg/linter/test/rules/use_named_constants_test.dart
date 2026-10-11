@@ -97,6 +97,34 @@ extension type const A(int i) {
 ''');
   }
 
+  test_noStaticConstants() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const A(0);
+}
+class A {
+  const A(int value);
+  static final zero = A(0);
+}
+''');
+  }
+
+  test_privateConstant_otherLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A(int value);
+  // ignore: unused_field
+  static const _zero = A(0);
+}
+''');
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+void f() {
+  const A(0);
+}
+''');
+  }
+
   test_reconstructed_sameAsPrivateName() async {
     await assertDiagnosticsFromMarkup(r'''
 void f() {
